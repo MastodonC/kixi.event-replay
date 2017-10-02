@@ -30,8 +30,10 @@
   "First 3 bytes of Nippy header" 
   (.getBytes "NPY" "UTF-8"))
 
+(def nippy-version-1 (byte 0))
+
 (defn npy-headed-buffer?
-  "True if first three bytes in buffer are NPY"
+  "True if first bytes in buffer match sig"
   [^ByteBuffer buffer]
   (let [^bytes nhs nippy-head-sig]
     (and (= (aget nhs 0)
@@ -39,13 +41,19 @@
          (= (aget nhs 1)
             (.get buffer 1))
          (= (aget nhs 2)
-            (.get buffer 2)))))
+            (.get buffer 2))
+         (= nippy-version-1
+            (.get buffer 3)))))
+
+(defn ^ByteBuffer rewind-buffer
+  [^ByteBuffer b]
+  (.rewind b))
 
 (defn trim-to-data
   "Creates a new buffer limited to that portion of the parent that contains data"
   [^ByteBuffer buffer]
   (let [position (.position buffer)]
-    (-> buffer (.rewind) (.slice) (.limit position))))
+    (-> buffer (rewind-buffer) (.slice) (.limit position))))
 
 (defn partition-into-nippy-sequence
   "Partitions seq into vectors containing all parts of an event"
@@ -69,10 +77,6 @@
            (.clear a)
            (.add a buffer)
            (xf acc complete-seq)))))))
-
-(defn rewind-buffer
-  [^ByteBuffer b]
-  (.rewind b))
 
 (defn combine-nippy-sequence
   [nippy-seq]
