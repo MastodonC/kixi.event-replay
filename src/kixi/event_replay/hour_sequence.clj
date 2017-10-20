@@ -3,7 +3,7 @@
             [clj-time.periodic :as p]
                         [kixi.event-replay.types
              :refer
-             [datehour parse-datahour unparse-datahour]]))
+             [datehour parse-datehour unparse-datehour]]))
 
 
 (def one-hour (t/hours 1))
@@ -11,9 +11,9 @@
 (defn hour-sequence
   [{:keys [start-datehour end-datehour]
     :as config
-    :or {end-datehour (unparse-datahour (t/now))}}]
-  (let [start (parse-datahour start-datehour)
-        end (parse-datahour end-datehour)]
+    :or {end-datehour (unparse-datehour (t/now))}}]
+  (let [start (parse-datehour start-datehour)
+        end (parse-datehour end-datehour)]
     (p/periodic-seq start
                     end
                     one-hour)))

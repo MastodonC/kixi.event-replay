@@ -44,7 +44,6 @@
 (defn execute-replay
   [config]
   (comp (mapcat (partial hour->s3-object-summaries config))
-        ;; TODO ensure file timestamps are contiguous
         (mapcat (partial s3-object-summary->nippy-encoded-events config))
         exception-on-out-of-order-event
         (map nippy/thaw)
