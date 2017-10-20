@@ -8,10 +8,10 @@
 (def datehour-formatter
   (f/formatter :date-hour))
 
-(def parse-datahour
+(def parse-datehour
   (partial f/parse datehour-formatter))
 
-(def unparse-datahour
+(def unparse-datehour
   (partial f/unparse datehour-formatter))
 
 (defn datehour?
@@ -20,7 +20,7 @@
     x
     (try
       (if (string? x)
-        (parse-datahour x)
+        (parse-datehour x)
         :clojure.spec.alpha/invalid)
       (catch IllegalArgumentException e
         :clojure.spec.alpha/invalid))))
