@@ -4,6 +4,7 @@
             [clojure.java.io :as io]
             [clojure.spec.alpha :as s]
             [clojure.string :as string]
+            [kixi.event-replay.ensure-event-order :refer [exception-on-out-of-order-event]]
             [kixi.event-replay.hour->s3-object-summaries
              :refer
              [hour->s3-object-summaries]]
@@ -11,7 +12,8 @@
             [kixi.event-replay.s3-object-summary->nippy-encoded-events
              :refer
              [s3-object-summary->nippy-encoded-events]]
-            [kixi.event-replay.types :refer [datehour]]))
+            [kixi.event-replay.types :refer [datehour]]
+            [taoensso.nippy :as nippy]))
 
 (s/def ::start-datehour datehour)
 (s/def ::end-datehour
@@ -42,8 +44,10 @@
 (defn execute-replay
   [config]
   (comp (mapcat (partial hour->s3-object-summaries config))
+        ;; TODO ensure file timestamps are contiguous
         (mapcat (partial s3-object-summary->nippy-encoded-events config))
-        ;; TODO decode event
+        exception-on-out-of-order-event
+        (map nippy/thaw)
         ;; TODO send event
         ))
 
