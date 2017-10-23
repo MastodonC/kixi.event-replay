@@ -12,7 +12,8 @@
             [kixi.event-replay.s3-object-summary->nippy-encoded-events
              :refer
              [s3-object-summary->nippy-encoded-events]]
-            [kixi.event-replay.types :refer [datehour]]
+            [kixi.event-replay.types :refer [datehour str-integer]]
+            [kixi.event-replay.kinesis-send-events :refer [send-event]]
             [taoensso.nippy :as nippy]))
 
 (s/def ::start-datehour datehour)
@@ -20,7 +21,20 @@
   (s/or :t datehour
         :n nil?))
 
-(s/def ::target-stream string?)
+(s/def ::target-stream
+  (s/and string?
+         #(not (#{"prod-witan-event"
+                  "staging-witan-event"} %))))
+(s/def ::endpoint string?)
+(s/def ::region string?)
+(s/def ::batch-size str-integer)
+
+(s/def ::kinesis
+  (s/keys :req-un [::target-stream
+                   ::endpoint
+                   ::batch-size
+                   ::region]))
+
 (s/def ::s3-base-dir
   (s/and string?
          #(string/ends-with? % "-log")))
@@ -28,7 +42,7 @@
 (s/def ::config
   (s/keys :req-un [::start-datehour
                    ::end-datehour
-                   ::target-stream
+                   ::kinesis
                    ::s3-base-dir]))
 
 (defn validate-config
@@ -37,18 +51,14 @@
     [true (s/conform ::config config)]
     [false (s/explain-data ::config config)]))
 
-(defn send-event
-  [_]
-  :done)
 
-(defn execute-replay
+(defn replay-events
   [config]
   (comp (mapcat (partial hour->s3-object-summaries config))
         (mapcat (partial s3-object-summary->nippy-encoded-events config))
         exception-on-out-of-order-event
         (map nippy/thaw)
-        ;; TODO send event
-        ))
+        (map (partial send-event config))))
 
 (defn aggregate-events
   ([] {:errors 0
@@ -63,7 +73,7 @@
 (defn execute
   [config]
   (transduce
-   (execute-replay config)
+   (replay-events config)
    aggregate-events
    (hour-sequence config)))
 
