@@ -1,0 +1,25 @@
+{
+  "id": "@@JOB_NAME@@",
+  "description": "@@JOB_NAME@@",
+  "labels": {
+    "owner": "@@OWNER@@"
+  },
+  "run": {
+      "cpus": 0.5,
+      "mem": 512,
+      "docker": {
+          "type": "DOCKER",
+          "image": "mastodonc/kixi.event-replay",
+          "forcePullImage": true,
+          "network": "BRIDGE"
+      },
+      "env": {
+          "START_TIME": "@@START_TIME@@",
+          "END_TIME": "@@END_TIME@@",
+          "TARGET_STREAM": "@@TARGET_STREAM@@",
+          "KINESIS_ENDPOINT": "@@KINESIS_ENDPOINT@@",
+          "REGION": "@@REGION@@",
+          "S3_BASE_DIR": "@@S3_BASE_DIR@@",
+      }
+  }
+}

@@ -4,7 +4,7 @@
             [environ.core :refer [env]]
             [kixi.event-replay.kinesis-send-events :as sut]))
 
-(def test-stream "dev-kixi.event-replay")
+(def test-stream "test-kixi.event-replay")
 (def test-kinesis-endpoint (or (env :kinesis-endpoint) "kinesis.eu-central-1.amazonaws.com"))
 (def test-region (or (env :region) "eu-central-1"))
 

@@ -1,0 +1,117 @@
+#!/bin/bash
+
+USAGE=$'Usage:
+  execute-replay [options]
+
+Deploy a one time job to Metronome that executes the latest Docker image of kixi.event-replay passing the relavant args.
+
+Options:
+  -s,--start-time        time from which to start the replace, defaults to beginning of the system "20170414T16"
+  -e,--end-time          time to replay upto, defaults to now
+  -p,--profile           set of internally configured args to use to communicate with target environment, default staging
+  -t,--target-stream     name of kinesis stream, will be created if not exists, to replay the events into
+  -h,--help              this message
+
+Notes:
+ -- times should be formatted YYYY-MM-ddTHH
+ -- single char options must be followed immediately by the value, eg -s2017-01-01T01
+ -- long options must be followed by =value, eg --start-time=2017-01-01T01'
+
+VALID_TIME="20[0-9]{2}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])T(0[1-9]|1[0-9|2[0-3])"
+
+SYSTEM_START_TIME=
+
+START_TIME="2017-04-14T16"
+END_TIME=`date -u +%Y-%m-%dT%H`
+PROFILE="staging"
+TARGET_STREAM=
+HELP=0
+
+#read options
+TEMP=`getopt -o hs::e::p:t: --long help,start-time::,end-time::,profile:,target-stream: -n 'execute-replay' -- "$@"`
+eval set -- "$TEMP"
+
+# extract options and their arguments into variables.
+while true ; do
+    case "$1" in
+        -h|--help) HELP=1 ; shift ;;
+        -s|--start-time)
+            case "$2" in
+                "") START_TIME=$SYSTEM_START_TIME ; shift 2 ;;
+                *) START_TIME=$2 ; shift 2 ;;
+            esac ;;
+        -e|--end-time)
+            case "$2" in
+                "") END_TIME=`date -u +%Y-%m-%dT%H` ; shift 2 ;;
+                *) END_TIME=$2 ; shift 2 ;;
+            esac ;;
+        -p|--profile)
+            case "$2" in
+                "") PROFILE="staging" ; shift 2 ;;
+                *) PROFILE=$2 ; shift 2 ;;
+            esac ;;
+        -t|--target-stream)
+            case "$2" in
+                *) TARGET_STREAM=$2 ; shift 2 ;;
+            esac ;;
+        --) shift ; break ;;
+        *) echo "Internal error!" ; exit 1 ;;
+    esac
+done
+
+
+if [[ "$HELP" -eq 1 ]]; then
+   echo "$USAGE";
+   exit 1;
+fi
+
+
+if ! [[ "$START_TIME" =~ ^$VALID_TIME ]]; then
+   echo "INVALID start time: $START_TIME";
+   exit 1;
+fi
+
+if ! [[ "$END_TIME" =~ ^$VALID_TIME ]]; then
+   echo "INVALID end time: $END_TIME";
+   exit 1;
+fi
+
+case $PROFILE in
+  staging) AWS_REGION="eu-central-1"
+           KINESIS_ENDPOINT="kinesis.eu-central-1.amazonaws.com"
+           S3_BASE_DIR="staging-witan-event-log"
+           METRONOME_URL="http://masters.staging.witan.mastodonc.net/service/metronome/v1/"
+           ;;
+  prod) AWS_REGION="eu-west-1"
+        KINESIS_ENDPOINT="kinesis.eu-west-1.amazonaws.com"
+        S3_BASE_DIR="prod-witan-event-log"
+        METRONOME_URL="http://masters.prod.witan.mastodonc.net/service/metronome/v1/"
+        ;;
+  *)
+    echo "INVALID profile: $PROFILE"
+    exit 1
+    ;;
+esac
+
+if [[ -z "$TARGET_STREAM" ]]; then
+  echo "INVALID target kinesis stream must be provided";
+  exit 1;
+fi
+
+OWNER=`id --name -u`
+JOB_NAME="event_replay_$TARGET_STREAM:$START_TIME:$END_TIME"
+
+echo "Command args valid"
+
+sed -e "s/@@JOB_NAME@@/$JOB_NAME/" \
+    -e "s/@@OWNER@@/$OWNER/" \
+    -e "s/@@START_TIME@@/$START_TIME/" \
+    -e "s/@@END_TIME@@/$END_TIME/" \
+    -e "s/@@TARGET_STREAM@@/$TARGET_STREAM/" \
+    -e "s/@@KINESIS_ENDPOINT@@/$KINESIS_ENDPOINT/" \
+    -e "s/@@REGION@@/$AWS_REGION/" \
+    -e "s/@@S3_BASE_DIR@@/$S3_BASE_DIR/" \
+    ./deployment/metronome_template.json \
+    > metronome.json
+
+echo $CHRONOS_JSON
