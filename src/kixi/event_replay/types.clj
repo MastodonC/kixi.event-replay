@@ -27,3 +27,16 @@
 
 (def datehour
   (s/conformer datehour? identity))
+
+(defn str-integer?
+  [x]
+  (if (string? x)
+    (try
+      (Integer/parseInt x)
+      (catch NumberFormatException e
+        :clojure.spec.alpha/invalid))
+    :clojure.spec.alpha/invalid))
+
+(def str-integer
+  (s/conformer str-integer?
+               identity))
