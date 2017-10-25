@@ -21,7 +21,7 @@
 (defn hour->s3-object-summaries
   ([{:keys [s3-base-dir] :as config}
     hour]
-   (hour->s3-object-summaries (:s3-base-dir @config)
+   (hour->s3-object-summaries s3-base-dir
                               (hour->s3-prefix hour)
                               nil))
   ([s3-base-dir prefix marker]

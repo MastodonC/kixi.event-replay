@@ -7,11 +7,9 @@
   "run": {
       "cpus": 0.5,
       "mem": 512,
+      "disk": 0,
       "docker": {
-          "type": "DOCKER",
-          "image": "mastodonc/kixi.event-replay",
-          "forcePullImage": true,
-          "network": "BRIDGE"
+          "image": "mastodonc/kixi.event-replay:@@VERSION@@"
       },
       "env": {
           "START_TIME": "@@START_TIME@@",
@@ -19,7 +17,7 @@
           "TARGET_STREAM": "@@TARGET_STREAM@@",
           "KINESIS_ENDPOINT": "@@KINESIS_ENDPOINT@@",
           "REGION": "@@REGION@@",
-          "S3_BASE_DIR": "@@S3_BASE_DIR@@",
+          "S3_BASE_DIR": "@@S3_BASE_DIR@@"
       }
   }
 }

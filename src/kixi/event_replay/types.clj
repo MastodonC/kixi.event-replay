@@ -35,7 +35,9 @@
       (Integer/parseInt x)
       (catch NumberFormatException e
         :clojure.spec.alpha/invalid))
-    :clojure.spec.alpha/invalid))
+    (if (integer? x)
+      x
+      :clojure.spec.alpha/invalid)))
 
 (def str-integer
   (s/conformer str-integer?
