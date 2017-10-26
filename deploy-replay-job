@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -o errexit
+
 USAGE=$'Usage:
   execute-replay [options]
 
@@ -92,9 +94,9 @@ fi
 
 OWNER=`id --name -u`
 STREAM_NO_DOT=`echo "$TARGET_STREAM" | tr . -`
-JOB_NAME="event-replay.$STREAM_NO_DOT-by-$OWNER"
+JOB_NAME="event-replay.into-$STREAM_NO_DOT-by-$OWNER"
 
-echo "Command args valid"
+echo "Building Metronome Job definition"
 
 sed -e "s/@@JOB_NAME@@/$JOB_NAME/" \
     -e "s/@@OWNER@@/$OWNER/" \
@@ -108,4 +110,7 @@ sed -e "s/@@JOB_NAME@@/$JOB_NAME/" \
     ./deployment/metronome_template.json \
     > metronome.json
 
-echo $CHRONOS_JSON
+echo "Deploying Job $JOB_NAME"
+dcos job add metronome.json
+echo "Executing Job"
+dcos job run $JOB_NAME
