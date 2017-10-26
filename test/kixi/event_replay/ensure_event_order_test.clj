@@ -9,7 +9,8 @@
             [kixi.event-replay.ensure-event-order :as sut]
             [clojure.test.check :as tc]
             [clojure.test.check.clojure-test :refer [defspec]]
-            [clojure.test.check.properties :as prop]))
+            [clojure.test.check.properties :as prop]
+            [taoensso.nippy :as nippy]))
 
 (comment "Cider bug https://github.com/clojure-emacs/cider/issues/1841 means [clojure.test.check :as tc] being required without use")
 
@@ -27,7 +28,10 @@
            {:num-elements 1}))
 
 (def events-gen
-  (gen/vector event-gen
+  (gen/vector (gen/fmap
+               (fn [e]
+                 {:event (nippy/freeze e)})
+               event-gen)
               1 50))
 
 (defn exception-on-out-of-order-event-test

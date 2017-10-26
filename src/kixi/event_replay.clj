@@ -4,6 +4,7 @@
             [clojure.java.io :as io]
             [clojure.spec.alpha :as s]
             [clojure.string :as string]
+            [clojure.pprint :refer [pprint]]
             [kixi.event-replay.ensure-event-order :refer [exception-on-out-of-order-event]]
             [kixi.event-replay.hour->s3-object-summaries
              :refer
@@ -13,7 +14,7 @@
              :refer
              [s3-object-summary->nippy-encoded-events]]
             [kixi.event-replay.types :refer [datehour str-integer]]
-            [kixi.event-replay.kinesis-send-events :refer [send-event]]
+            [kixi.event-replay.kinesis-send-events :refer [send-event-batches ensure-stream]]
             [taoensso.nippy :as nippy]))
 
 (s/def ::start-datehour datehour)
@@ -48,7 +49,7 @@
 (defn validate-config
   [config]
   (if (s/valid? ::config config)
-    [true (s/conform ::config config)]
+    [true (s/unform ::config (s/conform ::config config))]
     [false (s/explain-data ::config config)]))
 
 
@@ -56,9 +57,9 @@
   [config]
   (comp (mapcat (partial hour->s3-object-summaries config))
         (mapcat (partial s3-object-summary->nippy-encoded-events config))
-        exception-on-out-of-order-event
         (map nippy/thaw)
-        (map (partial send-event config))))
+        exception-on-out-of-order-event
+        (send-event-batches config)))
 
 (defn aggregate-events
   ([] {:errors 0
@@ -72,6 +73,9 @@
 
 (defn execute
   [config]
+  (println "Configuration: ")
+  (pprint config)
+  (ensure-stream config)
   (transduce
    (replay-events config)
    aggregate-events
