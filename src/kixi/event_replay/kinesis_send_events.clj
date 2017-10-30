@@ -73,11 +73,18 @@
       (assoc :data (:event event))
       (dissoc :event)))
 
+(defn wrap-byte-buffers
+  [event]
+  (update event
+          :data
+          #(java.nio.ByteBuffer/wrap %)))
+
 (defn send-event-batches
   [{{:keys [batch-size]}
     :kinesis
     :as config}]
   (comp
    (map rename-event->data)
+   (map wrap-byte-buffers)
    (partition-all batch-size)
    (map (partial send-batch config))))
