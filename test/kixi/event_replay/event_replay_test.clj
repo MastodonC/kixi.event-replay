@@ -25,4 +25,9 @@
                                                            :endpoint "na"
                                                            :batch-size 10}})))
       (is (= 17
-             (count @sent-events))))))
+             (count @sent-events)))
+      (is (every? #(= #{:data :partition-key :sequence-num}
+                      (set (keys %)))
+                  @sent-events))
+      (is (every? #(instance? java.nio.ByteBuffer %)
+                  (map :data @sent-events))))))
