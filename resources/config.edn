@@ -1,8 +1,9 @@
 {:start-datehour #or [#env START_TIME
                       "2017-04-01T00"]
  :end-datehour #env END_TIME
- :s3-base-dir #env S3_BASE_DIR
+ :s3 {:base-dir #env S3_BASE_DIR
+      :region #env S3_REGION}
  :kinesis {:target-stream #env TARGET_STREAM
            :endpoint #env KINESIS_ENDPOINT
-           :region #env REGION
+           :region #env KINESIS_REGION
            :batch-size 50}}
