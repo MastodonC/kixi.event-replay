@@ -71,14 +71,16 @@ if ! [[ "$END_TIME" =~ ^$VALID_TIME ]]; then
 fi
 
 case $PROFILE in
-  staging) AWS_REGION="eu-central-1"
+  staging) KINESIS_REGION="eu-central-1"
            KINESIS_ENDPOINT="kinesis.eu-central-1.amazonaws.com"
            S3_BASE_DIR="staging-witan-event-log"
+           S3_REGION="eu-central-1"
            METRONOME_URL="http://masters.staging.witan.mastodonc.net/service/metronome/v1/"
            ;;
-  prod) AWS_REGION="eu-west-1"
-        KINESIS_ENDPOINT="kinesis.eu-west-1.amazonaws.com"
+  prod) KINESIS_REGION="eu-central-1"
+        KINESIS_ENDPOINT="kinesis.eu-central-1.amazonaws.com"
         S3_BASE_DIR="prod-witan-event-log"
+        S3_REGION="eu-west-1"
         METRONOME_URL="http://masters.prod.witan.mastodonc.net/service/metronome/v1/"
         ;;
   *)
@@ -104,8 +106,9 @@ sed -e "s/@@JOB_NAME@@/$JOB_NAME/" \
     -e "s/@@END_TIME@@/$END_TIME/" \
     -e "s/@@TARGET_STREAM@@/$TARGET_STREAM/" \
     -e "s/@@KINESIS_ENDPOINT@@/$KINESIS_ENDPOINT/" \
-    -e "s/@@REGION@@/$AWS_REGION/" \
+    -e "s/@@KINESIS_REGION@@/$KINESIS_REGION/" \
     -e "s/@@S3_BASE_DIR@@/$S3_BASE_DIR/" \
+    -e "s/@@S3_REGION@@/$S3_REGION/" \
     -e "s/@@VERSION@@/$VERSION/" \
     ./deployment/metronome_template.json \
     > metronome.json

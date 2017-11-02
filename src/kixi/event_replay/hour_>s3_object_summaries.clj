@@ -19,17 +19,22 @@
 (def max-objects 20)
 
 (defn hour->s3-object-summaries
-  ([{:keys [s3-base-dir] :as config}
+  ([{{:keys [base-dir
+             region]}
+     :s3
+     :as config}
     hour]
-   (hour->s3-object-summaries s3-base-dir
+   (hour->s3-object-summaries base-dir
+                              region
                               (hour->s3-prefix hour)
                               nil))
-  ([s3-base-dir prefix marker]
-   (let [list-objects-res (s3/list-objects (merge {:bucket-name s3-base-dir
+  ([base-dir region prefix marker]
+   (let [list-objects-res (s3/list-objects {:endpoint region}
+                                           (merge {:bucket-name base-dir
                                                    :prefix prefix
                                                    :max-keys max-objects}
                                                   (when marker
                                                     {:marker marker})))]
      (concat (:object-summaries list-objects-res)
              (when (:next-marker list-objects-res)
-               (hour->s3-object-summaries s3-base-dir prefix (:next-marker list-objects-res)))))))
+               (hour->s3-object-summaries base-dir region prefix (:next-marker list-objects-res)))))))

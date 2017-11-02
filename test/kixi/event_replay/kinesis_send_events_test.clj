@@ -2,7 +2,8 @@
   (:require [amazonica.aws.kinesis :as kinesis]
             [clojure.test :refer :all]
             [environ.core :refer [env]]
-            [kixi.event-replay.kinesis-send-events :as sut]))
+            [kixi.event-replay.kinesis-send-events :as sut]
+            [taoensso.nippy :as nippy]))
 
 (def test-stream "test-kixi.event-replay")
 (def test-kinesis-endpoint (or (env :kinesis-endpoint) "kinesis.eu-central-1.amazonaws.com"))
@@ -37,7 +38,7 @@
 
 (defn make-event
   []
-  {:event {:string "event"}
+  {:event (nippy/freeze {:string "event"})
    :partition-key "12345"
    :sequence-num "6789"})
 
@@ -50,7 +51,7 @@
            (:shard-id resp)))))
 
 (deftest send-event-batches-test
-  (let [events (repeatedly 20  make-event)
+  (let [events (repeatedly 20 make-event)
                 _ (sut/ensure-stream kinesis-conn)
         resp (into []
                    (sut/send-event-batches (assoc-in kinesis-conn

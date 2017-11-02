@@ -36,15 +36,19 @@
                    ::batch-size
                    ::region]))
 
-(s/def ::s3-base-dir
+(s/def ::base-dir
   (s/and string?
          #(string/ends-with? % "-log")))
+
+(s/def ::s3
+  (s/keys :req-un [::base-dir
+                   ::region]))
 
 (s/def ::config
   (s/keys :req-un [::start-datehour
                    ::end-datehour
                    ::kinesis
-                   ::s3-base-dir]))
+                   ::s3]))
 
 (defn validate-config
   [config]
