@@ -58,35 +58,35 @@
                          compare-event-created-times))
           ks)))
 
+(def sort-window-interval (t/millis 10))
+
 ;This doesn't perform very well at all, but should be enough to prove the theory on a discovered out of order file
 (defn time-windowed-ordering
-  [sort-window-interval]
-  (fn
-    [xf]
-    (let [state (atom (event-created-ordered-set))]
-      (fn
-        ([] (xf))
-        ([result]
-         (xf
-          (reduce
-           (fn [r e]
-             (xf r e))
-           result
-           @state)))
-        ([result event]
-         (if (empty? @state)
-           (do (swap! state conj event)
-               result)
-           (let [event-dt-minus-window (t/minus (event->created-time event)
-                                                sort-window-interval)
-                 [releasable-events keep-events] (split-with
-                                                  #(t/before? (event->created-time %)
-                                                              event-dt-minus-window)
-                                                  @state)]
-             (reset! state (conj (event-created-ordered-set keep-events)
-                                 event))
-             (reduce
-              (fn [r e]
-                (xf r e))
-              result
-              releasable-events))))))))
+  [xf]
+  (let [state (atom (event-created-ordered-set))]
+    (fn
+      ([] (xf))
+      ([result]
+       (xf
+        (reduce
+         (fn [r e]
+           (xf r e))
+         result
+         @state)))
+      ([result event]
+       (if (empty? @state)
+         (do (swap! state conj event)
+             result)
+         (let [event-dt-minus-window (t/minus (event->created-time event)
+                                              sort-window-interval)
+               [releasable-events keep-events] (split-with
+                                                #(t/before? (event->created-time %)
+                                                            event-dt-minus-window)
+                                                @state)]
+           (reset! state (conj (event-created-ordered-set keep-events)
+                               event))
+           (reduce
+            (fn [r e]
+              (xf r e))
+            result
+            releasable-events)))))))
