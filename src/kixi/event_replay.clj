@@ -5,7 +5,7 @@
             [clojure.spec.alpha :as s]
             [clojure.string :as string]
             [clojure.pprint :refer [pprint]]
-            [kixi.event-replay.ensure-event-order :refer [exception-on-out-of-order-event]]
+            [kixi.event-replay.ensure-event-order :refer [time-windowed-ordering exception-on-out-of-order-event]]
             [kixi.event-replay.hour->s3-object-summaries
              :refer
              [hour->s3-object-summaries]]
@@ -62,6 +62,7 @@
   (comp (mapcat (partial hour->s3-object-summaries config))
         (mapcat (partial s3-object-summary->nippy-encoded-events config))
         (map nippy/thaw)
+        time-windowed-ordering
         exception-on-out-of-order-event
         (send-event-batches config)))
 
