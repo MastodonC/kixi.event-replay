@@ -75,13 +75,11 @@ case $PROFILE in
            KINESIS_ENDPOINT="kinesis.eu-central-1.amazonaws.com"
            S3_BASE_DIR="staging-witan-event-log"
            S3_REGION="eu-central-1"
-           METRONOME_URL="http://masters.staging.witan.mastodonc.net/service/metronome/v1/"
            ;;
   prod) KINESIS_REGION="eu-central-1"
         KINESIS_ENDPOINT="kinesis.eu-central-1.amazonaws.com"
-        S3_BASE_DIR="prod-witan-event-log"
+        S3_BASE_DIR="prod-witan-event-log-20171114"
         S3_REGION="eu-west-1"
-        METRONOME_URL="http://masters.prod.witan.mastodonc.net/service/metronome/v1/"
         ;;
   *)
     echo "INVALID profile: $PROFILE"

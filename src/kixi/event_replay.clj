@@ -38,7 +38,7 @@
 
 (s/def ::base-dir
   (s/and string?
-         #(string/ends-with? % "-log")))
+         #(re-matches #"(?:staging|prod)-witan-event-log-\d{8}" %)))
 
 (s/def ::s3
   (s/keys :req-un [::base-dir
