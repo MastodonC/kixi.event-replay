@@ -19,7 +19,7 @@
                                   (swap! sent-events concat batch))]
       (sut/execute (second (sut/validate-config {:start-datehour "2017-09-01T01"
                                                  :end-datehour "2017-09-01T02"
-                                                 :s3 {:base-dir "na-log"
+                                                 :s3 {:base-dir "staging-witan-event-log-99999999"
                                                       :region "na"}
                                                  :kinesis {:target-stream "na"
                                                            :region "na"
