@@ -89,7 +89,7 @@
 (defn time-windowed-ordering-test
   [events]
   (into []
-        (sut/time-windowed-ordering ordering-window)
+        sut/time-windowed-ordering
         events))
 
 (deftest check-time-windowed-ordering-test
