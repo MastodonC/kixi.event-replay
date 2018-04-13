@@ -78,7 +78,7 @@ case $PROFILE in
            ;;
   prod) KINESIS_REGION="eu-west-1"
         KINESIS_ENDPOINT="kinesis.eu-west-1.amazonaws.com"
-        S3_BASE_DIR="prod-witan-event-log-20171114"
+        S3_BASE_DIR="prod-witan-event-log-20180314"
         S3_REGION="eu-west-1"
         ;;
   *)
